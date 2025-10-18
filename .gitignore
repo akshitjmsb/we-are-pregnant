@@ -15,6 +15,13 @@ build/
 .env.test.local
 .env.production.local
 
+# Security: Never commit API keys or secrets
+*.key
+*.secret
+*.pem
+*.p12
+*.pfx
+
 # IDE and editor files
 .vscode/
 .idea/
