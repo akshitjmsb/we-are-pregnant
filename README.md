@@ -1,4 +1,4 @@
-# Montreal Pregnancy Guide
+# We are Pregnant
 
 A comprehensive, interactive guide for expectant parents navigating pregnancy in Montreal, Quebec. Built with React, TypeScript, and modern web technologies.
 
@@ -156,3 +156,7 @@ For questions or issues, please open an issue on GitHub.
 ---
 
 **Note**: This guide provides general information and is not a substitute for professional medical advice. Always consult your healthcare provider.
+
+---
+
+**We are Pregnant** - Supporting your journey through pregnancy in Montreal, Quebec.

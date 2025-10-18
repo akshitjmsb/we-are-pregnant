@@ -49,7 +49,7 @@ function App() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-[#AF6B51] tracking-tight">
-            Your Montreal Pregnancy Guide
+            We are Pregnant
           </h1>
           <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
             Congratulations! Here is a calm, supportive guide to help you navigate the exciting journey ahead, right here in Montreal.
@@ -85,7 +85,7 @@ function App() {
 
         <footer className="text-center mt-10 text-gray-500 text-sm">
           <p>This guide provides general information and is not a substitute for professional medical advice. Always consult your healthcare provider.</p>
-          <p>&copy; 2025 Montreal Pregnancy Guide. All Rights Reserved.</p>
+          <p>&copy; 2025 We are Pregnant. All Rights Reserved.</p>
         </footer>
       </div>
     </ErrorBoundary>
