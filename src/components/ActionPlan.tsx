@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCloudChecklistState } from '../hooks/useCloudStorage';
+import { useChecklistState } from '../hooks/useStorage';
 import { ChecklistTask } from '../types';
 
 const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
@@ -41,7 +41,7 @@ const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
 ];
 
 export function ActionPlan() {
-  const { completedTasks, toggleTask, isTaskCompleted, isLoading, error } = useCloudChecklistState();
+  const { completedTasks, toggleTask, isTaskCompleted, isLoading, error } = useChecklistState();
 
   if (isLoading) {
     return (
@@ -70,7 +70,7 @@ export function ActionPlan() {
         <p className="mt-2 text-gray-600">An interactive checklist to keep you on track. Click to mark tasks as complete.</p>
         <p className="mt-1 text-sm text-gray-500">Your progress is saved in the cloud and synced across all devices.</p>
       </div>
-      
+
       <div className="max-w-4xl mx-auto space-y-8">
         {checklistData.map((section, sectionIndex) => (
           <div key={sectionIndex}>

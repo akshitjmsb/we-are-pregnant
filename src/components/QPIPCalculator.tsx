@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { QPIPCalculator as QPIPCalc } from '../utils/qpipCalculations';
 import { QPIPResults, QPIPCalculation } from '../types';
 import { useErrorHandler } from '../hooks/useErrorHandler';
-import { useCloudQPIPHistory } from '../hooks/useCloudStorage';
+import { useQPIPHistory } from '../hooks/useStorage';
 
 export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [salary, setSalary] = useState(65000);
@@ -13,7 +13,7 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [isEligible, setIsEligible] = useState(true);
 
   const { error, handleError, clearError } = useErrorHandler();
-  const { qpipHistory, saveQPIPCalculation, isLoading: isHistoryLoading } = useCloudQPIPHistory();
+  const { qpipHistory, saveQPIPCalculation, isLoading: isHistoryLoading } = useQPIPHistory();
 
   const calculateBenefits = async () => {
     try {
