@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { QPIPCalculator as QPIPCalc, QPIPCalculation } from '../utils/qpipCalculations';
-import { QPIPResults } from '../types';
+import { QPIPCalculator as QPIPCalc } from '../utils/qpipCalculations';
+import { QPIPResults, QPIPCalculation } from '../types';
 import { useErrorHandler } from '../hooks/useErrorHandler';
+import { useCloudQPIPHistory } from '../hooks/useCloudStorage';
 
 export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [salary, setSalary] = useState(65000);
@@ -10,28 +11,40 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [taxRate, setTaxRate] = useState(30);
   const [results, setResults] = useState<QPIPResults | null>(null);
   const [isEligible, setIsEligible] = useState(true);
-  
-  const { error, handleError, clearError } = useErrorHandler();
 
-  const calculateBenefits = () => {
+  const { error, handleError, clearError } = useErrorHandler();
+  const { qpipHistory, saveQPIPCalculation, isLoading: isHistoryLoading } = useCloudQPIPHistory();
+
+  const calculateBenefits = async () => {
     try {
       clearError();
-      
+
       const calculation: QPIPCalculation = {
         salary,
         plan,
         employmentType,
-        taxRate: taxRate / 100
+        taxRate: taxRate / 100,
+        timestamp: new Date().toISOString()
       };
 
       const benefits = QPIPCalc.calculateBenefits(calculation);
-      
+
       if (benefits === null) {
         setIsEligible(false);
         setResults(null);
       } else {
         setIsEligible(true);
         setResults(benefits);
+
+        // Save calculation to cloud storage
+        try {
+          await saveQPIPCalculation({
+            ...calculation,
+            results: benefits
+          });
+        } catch (saveError) {
+          console.warn('Failed to save calculation to cloud storage:', saveError);
+        }
       }
     } catch (err) {
       handleError(err, 'QPIP calculation');
@@ -43,7 +56,7 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
   }, [salary, plan, employmentType, taxRate]);
 
   const formatCurrency = useMemo(() => QPIPCalc.formatCurrency, []);
-  const requiredDocuments = useMemo(() => 
+  const requiredDocuments = useMemo(() =>
     QPIPCalc.getRequiredDocuments(employmentType), [employmentType]
   );
 
@@ -87,10 +100,11 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
                 value={salary}
                 onChange={(e) => setSalary(Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
+                aria-label="Salary slider"
               />
               <p className="text-xs text-gray-500 mt-1">Max insurable earnings for 2024 are $94,000.</p>
             </div>
-            
+
             <div>
               <label htmlFor="qpip-employment-type" className="block text-sm font-medium text-gray-700">
                 Employment Type
@@ -226,7 +240,7 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
 
       <div className="text-center mt-8 text-sm text-gray-500">
         <p>
-          <strong>Disclaimer:</strong> This calculator provides an estimate for informational purposes only. 
+          <strong>Disclaimer:</strong> This calculator provides an estimate for informational purposes only.
           It is not a substitute for official calculations from Revenu Québec. Always consult the official{' '}
           <a href="https://www.rqap.gouv.qc.ca/en" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#AF6B51]">
             QPIP website

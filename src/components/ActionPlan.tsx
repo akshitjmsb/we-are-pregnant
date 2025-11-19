@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChecklistState } from '../hooks/useLocalStorage';
+import { useCloudChecklistState } from '../hooks/useCloudStorage';
 import { ChecklistTask } from '../types';
 
 const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
@@ -41,13 +41,34 @@ const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
 ];
 
 export function ActionPlan() {
-  const { completedTasks, toggleTask, isTaskCompleted } = useChecklistState();
+  const { completedTasks, toggleTask, isTaskCompleted, isLoading, error } = useCloudChecklistState();
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#AF6B51]"></div>
+        <p className="mt-4 text-gray-600">Loading your checklist...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-red-600">Unable to load your checklist. Please try refreshing the page.</p>
+          <p className="text-sm text-red-500 mt-2">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-800">Your Pregnancy Action Plan</h2>
         <p className="mt-2 text-gray-600">An interactive checklist to keep you on track. Click to mark tasks as complete.</p>
+        <p className="mt-1 text-sm text-gray-500">Your progress is saved in the cloud and synced across all devices.</p>
       </div>
       
       <div className="max-w-4xl mx-auto space-y-8">

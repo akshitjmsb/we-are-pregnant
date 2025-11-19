@@ -1,0 +1,15 @@
+{
+    "app": {
+        "title": "Nous sommes enceintes",
+        "subtitle": "Félicitations ! Voici un guide calme et solidaire pour vous aider à naviguer dans ce voyage passionnant, ici même à Montréal."
+    },
+    "tabs": {
+        "actionPlan": "Plan d'action",
+        "healthcare": "Guide de santé",
+        "qpipCalculator": "Calculateur RQAP",
+        "timeline": "Chronologie",
+        "resources": "Ressources",
+        "contacts": "Contacts clés",
+        "wellness": "Bien-être"
+    }
+}

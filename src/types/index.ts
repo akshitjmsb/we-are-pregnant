@@ -18,6 +18,7 @@ export interface QPIPCalculation {
   plan: 'basic' | 'special';
   employmentType: 'employee' | 'self-employed';
   taxRate: number;
+  timestamp?: string;
 }
 
 export interface QPIPPlanDetails {

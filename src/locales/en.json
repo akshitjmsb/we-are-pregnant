@@ -1,0 +1,15 @@
+{
+    "app": {
+        "title": "We are Pregnant",
+        "subtitle": "Congratulations! Here is a calm, supportive guide to help you navigate the exciting journey ahead, right here in Montreal."
+    },
+    "tabs": {
+        "actionPlan": "Action Plan",
+        "healthcare": "Healthcare Guide",
+        "qpipCalculator": "QPIP Calculator",
+        "timeline": "Timeline",
+        "resources": "Resources",
+        "contacts": "Key Contacts",
+        "wellness": "Wellness"
+    }
+}

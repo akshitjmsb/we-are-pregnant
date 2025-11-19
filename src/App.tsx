@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActionPlan } from './components/ActionPlan';
 import { HealthcareGuide } from './components/HealthcareGuide';
 import { QPIPCalculator } from './components/QPIPCalculator';
@@ -11,17 +12,23 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 type TabId = 'action-plan' | 'healthcare' | 'qpip-calculator' | 'timeline' | 'resources' | 'contacts' | 'wellness';
 
 const tabs = [
-  { id: 'action-plan' as TabId, label: 'Action Plan' },
-  { id: 'healthcare' as TabId, label: 'Healthcare Guide' },
-  { id: 'qpip-calculator' as TabId, label: 'QPIP Calculator' },
-  { id: 'timeline' as TabId, label: 'Timeline' },
-  { id: 'resources' as TabId, label: 'Resources' },
-  { id: 'contacts' as TabId, label: 'Key Contacts' },
-  { id: 'wellness' as TabId, label: 'Wellness' },
+  { id: 'action-plan' as TabId, labelKey: 'tabs.actionPlan' },
+  { id: 'healthcare' as TabId, labelKey: 'tabs.healthcare' },
+  { id: 'qpip-calculator' as TabId, labelKey: 'tabs.qpipCalculator' },
+  { id: 'timeline' as TabId, labelKey: 'tabs.timeline' },
+  { id: 'resources' as TabId, labelKey: 'tabs.resources' },
+  { id: 'contacts' as TabId, labelKey: 'tabs.contacts' },
+  { id: 'wellness' as TabId, labelKey: 'tabs.wellness' },
 ];
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>('action-plan');
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'fr' : 'en';
+    i18n.changeLanguage(newLang);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -47,12 +54,18 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="text-center mb-10">
+        <header className="text-center mb-10 relative">
+          <button
+            onClick={toggleLanguage}
+            className="absolute top-0 right-0 px-3 py-1 text-sm font-medium text-[#AF6B51] border border-[#AF6B51] rounded hover:bg-[#AF6B51] hover:text-white transition-colors"
+          >
+            {i18n.language === 'en' ? 'FR' : 'EN'}
+          </button>
           <h1 className="text-4xl md:text-5xl font-bold text-[#AF6B51] tracking-tight">
-            We are Pregnant
+            {t('app.title')}
           </h1>
           <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-            Congratulations! Here is a calm, supportive guide to help you navigate the exciting journey ahead, right here in Montreal.
+            {t('app.subtitle')}
           </p>
         </header>
 
@@ -63,15 +76,14 @@ function App() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  className={`tab-btn py-4 px-1 text-base font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all duration-300 ${
-                    activeTab === tab.id ? 'active' : ''
-                  }`}
+                  className={`tab-btn py-4 px-1 text-base font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all duration-300 ${activeTab === tab.id ? 'active' : ''
+                    }`}
                   onClick={() => setActiveTab(tab.id)}
                   role="tab"
                   aria-controls={tab.id}
                   aria-selected={activeTab === tab.id}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               ))}
             </nav>

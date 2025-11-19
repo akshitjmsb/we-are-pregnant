@@ -99,3 +99,4 @@ temp/
 
 # Vite cache
 .vite
+.vercel
