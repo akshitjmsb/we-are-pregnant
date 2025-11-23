@@ -131,10 +131,29 @@ The application uses a custom color palette optimized for pregnancy-related cont
 
 The application builds to static files that can be deployed to any static hosting service:
 
-- Vercel
+- Vercel (Recommended)
 - Netlify
 - GitHub Pages
 - AWS S3 + CloudFront
+
+### Vercel Deployment (Automated)
+
+This repository is configured for automated deployment with Vercel.
+
+1.  **Connect to Vercel**:
+    *   Go to [Vercel](https://vercel.com) and sign up/login.
+    *   Click "Add New..." -> "Project".
+    *   Import this GitHub repository.
+
+2.  **Configure Environment Variables**:
+    *   In the Vercel project settings, go to "Settings" -> "Environment Variables".
+    *   Add the following variables (get these from your Supabase project settings):
+        *   `VITE_SUPABASE_URL`
+        *   `VITE_SUPABASE_ANON_KEY`
+
+3.  **Deploy**:
+    *   Vercel will automatically deploy the `main` branch.
+    *   Any Pull Request will generate a preview URL.
 
 ## 🤝 Contributing
 

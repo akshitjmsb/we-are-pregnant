@@ -8,6 +8,8 @@ import { Resources } from './components/Resources';
 import { KeyContacts } from './components/KeyContacts';
 import { Wellness } from './components/Wellness';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Login } from './components/Login';
 
 type TabId = 'action-plan' | 'healthcare' | 'qpip-calculator' | 'timeline' | 'resources' | 'contacts' | 'wellness';
 
@@ -21,9 +23,11 @@ const tabs = [
   { id: 'wellness' as TabId, labelKey: 'tabs.wellness' },
 ];
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<TabId>('action-plan');
+  const [showLogin, setShowLogin] = useState(false);
   const { t, i18n } = useTranslation();
+  const { user, signOut } = useAuth();
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'fr' : 'en';
@@ -55,12 +59,30 @@ function App() {
     <ErrorBoundary>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="text-center mb-10 relative">
-          <button
-            onClick={toggleLanguage}
-            className="absolute top-0 right-0 px-3 py-1 text-sm font-medium text-[#AF6B51] border border-[#AF6B51] rounded hover:bg-[#AF6B51] hover:text-white transition-colors"
-          >
-            {i18n.language === 'en' ? 'FR' : 'EN'}
-          </button>
+          <div className="absolute top-0 right-0 flex space-x-2">
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1 text-sm font-medium text-[#AF6B51] border border-[#AF6B51] rounded hover:bg-[#AF6B51] hover:text-white transition-colors"
+            >
+              {i18n.language === 'en' ? 'FR' : 'EN'}
+            </button>
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="px-3 py-1 text-sm font-medium text-white bg-[#AF6B51] rounded hover:bg-[#9c5f48] transition-colors"
+              >
+                Log In
+              </button>
+            )}
+          </div>
+
           <h1 className="text-4xl md:text-5xl font-bold text-[#AF6B51] tracking-tight">
             {t('app.title')}
           </h1>
@@ -100,7 +122,17 @@ function App() {
           <p>&copy; 2025 We are Pregnant. All Rights Reserved.</p>
         </footer>
       </div>
+
+      {showLogin && <Login onClose={() => setShowLogin(false)} />}
     </ErrorBoundary>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
