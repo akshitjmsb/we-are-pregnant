@@ -4,23 +4,26 @@ A comprehensive, interactive guide for expectant parents navigating pregnancy in
 
 ## 🚀 Features
 
-- **Interactive Action Plan**: Checklist with local storage persistence
+- **Interactive Action Plan**: Cloud-synced checklist that works across all devices
 - **Healthcare Navigation**: Step-by-step guide to Quebec healthcare system
-- **QPIP Calculator**: Calculate maternity/paternity benefits with real-time updates
+- **QPIP Calculator**: Calculate maternity/paternity benefits with cloud-stored history
 - **Pregnancy Timeline**: Month-by-month development tracking with interactive charts
 - **Local Resources**: Montreal-specific hospitals, contacts, and services
 - **Wellness Guide**: Nutrition, exercise, and mental health tips
+- **Cloud Storage**: All data securely stored in Supabase (no local storage)
+- **Authentication**: Secure user accounts with email magic links
 - **Responsive Design**: Mobile-friendly interface
 - **Accessibility**: ARIA attributes and keyboard navigation
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 18 with TypeScript
+- **Backend**: Supabase (PostgreSQL database, Authentication, Row Level Security)
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Charts**: Chart.js
 - **Testing**: Vitest + Testing Library
-- **State Management**: React hooks with localStorage
+- **State Management**: React hooks with Supabase cloud storage
 
 ## 📁 Project Structure
 
@@ -34,21 +37,28 @@ src/
 │   ├── Resources.tsx
 │   ├── KeyContacts.tsx
 │   ├── Wellness.tsx
+│   ├── Login.tsx
 │   └── ErrorBoundary.tsx
+├── contexts/           # React contexts
+│   └── AuthContext.tsx  # Supabase authentication
 ├── hooks/              # Custom React hooks
-│   ├── useLocalStorage.ts
+│   ├── useStorage.ts   # Cloud storage hooks
 │   └── useErrorHandler.ts
+├── lib/                # External library configurations
+│   └── supabase.ts     # Supabase client
 ├── types/              # TypeScript type definitions
 │   └── index.ts
 ├── utils/              # Utility functions
-│   ├── localStorage.ts
-│   ├── qpipCalculations.ts
-│   └── __tests__/      # Unit tests
+│   ├── supabaseStorage.ts  # Supabase storage manager
+│   └── qpipCalculations.ts
 ├── test/               # Test setup
 │   └── setup.ts
 ├── App.tsx             # Main application component
 ├── main.tsx            # Application entry point
 └── index.css           # Global styles
+supabase/
+└── migrations/         # Database migrations
+    └── 20250101000000_create_user_tables.sql
 ```
 
 ## 🚀 Getting Started
@@ -65,6 +75,20 @@ src/
    ```bash
    npm install
    ```
+
+3. Set up Supabase:
+   - Create a project at [supabase.com](https://supabase.com)
+   - Get your project URL and anon key from the project settings
+   - Create a `.env.local` file in the root directory:
+     ```env
+     VITE_SUPABASE_URL=your-project-url
+     VITE_SUPABASE_ANON_KEY=your-anon-key
+     ```
+
+4. Set up the database:
+   - Link your Supabase project: `npx supabase link --project-ref your-project-ref`
+   - Run migrations: `npx supabase db push`
+   - Or manually run the SQL in `supabase/migrations/20250101000000_create_user_tables.sql` in your Supabase SQL editor
 
 ### Development
 
@@ -98,9 +122,10 @@ npm run test:coverage
 The project includes comprehensive unit tests for utility functions:
 
 - QPIP calculation logic
-- Local storage management
+- Supabase storage management
 - Error handling
 - Currency formatting
+- React component rendering
 
 Tests are written using Vitest and Testing Library for React components.
 
@@ -148,12 +173,27 @@ This repository is configured for automated deployment with Vercel.
 2.  **Configure Environment Variables**:
     *   In the Vercel project settings, go to "Settings" -> "Environment Variables".
     *   Add the following variables (get these from your Supabase project settings):
-        *   `VITE_SUPABASE_URL`
-        *   `VITE_SUPABASE_ANON_KEY`
+        *   `VITE_SUPABASE_URL` - Your Supabase project URL
+        *   `VITE_SUPABASE_ANON_KEY` - Your Supabase anon/public key
 
-3.  **Deploy**:
+3.  **Set up Database**:
+    *   Run the migration SQL from `supabase/migrations/20250101000000_create_user_tables.sql` in your Supabase SQL editor
+    *   This creates the `user_checklist` and `user_qpip_history` tables with Row Level Security policies
+
+4.  **Deploy**:
     *   Vercel will automatically deploy the `main` branch.
     *   Any Pull Request will generate a preview URL.
+
+## 🔐 Authentication & Data Storage
+
+This application uses **Supabase for all data storage** - no local storage is used. This ensures:
+
+- ✅ Data syncs across all devices
+- ✅ Secure user authentication with email magic links
+- ✅ Row Level Security (RLS) for data protection
+- ✅ Automatic backups and data persistence
+
+**Users must sign in** to save their checklist progress and QPIP calculation history. All data is stored securely in Supabase's PostgreSQL database.
 
 ## 🤝 Contributing
 

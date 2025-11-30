@@ -1,97 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
-import { HybridStorageManager } from '../utils/hybridStorage';
+import { SupabaseStorageManager } from '../utils/supabaseStorage';
 import { useErrorHandler } from './useErrorHandler';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { QPIPCalculation } from '../types';
 
-export function useStorage<T>(
-    key: string,
-    initialValue: T
-): [T, (value: T | ((val: T) => T)) => void, () => void, boolean] {
-    const [storedValue, setStoredValue] = useState<T>(initialValue);
-    const [isLoading, setIsLoading] = useState(true);
-    const { handleError, clearError } = useErrorHandler();
-
-    // Load data from storage on mount
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                clearError();
-                setIsLoading(true);
-
-                // For now, we'll use a generic approach
-                const data = await HybridStorageManager.getChecklistState();
-                if (key === 'checklist') {
-                    setStoredValue(data as T);
-                }
-            } catch (error) {
-                handleError(error, `Loading ${key} from storage`);
-                // Keep the initial value if loading fails
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadData();
-    }, [key, handleError, clearError]);
-
-    const setValue = useCallback(
-        async (value: T | ((val: T) => T)) => {
-            try {
-                clearError();
-                const valueToStore = value instanceof Function ? value(storedValue) : value;
-                setStoredValue(valueToStore);
-
-                // Save to storage
-                if (key === 'checklist' && Array.isArray(valueToStore)) {
-                    await HybridStorageManager.saveChecklistState(valueToStore as string[]);
-                }
-            } catch (error) {
-                handleError(error, `Saving ${key} to storage`);
-            }
-        },
-        [key, storedValue, handleError, clearError]
-    );
-
-    const removeValue = useCallback(async () => {
-        try {
-            clearError();
-            setStoredValue(initialValue);
-            // Clear from storage
-            await HybridStorageManager.clearUserData();
-        } catch (error) {
-            handleError(error, `Clearing ${key} from storage`);
-        }
-    }, [key, initialValue, handleError, clearError]);
-
-    return [storedValue, setValue, removeValue, isLoading];
-}
-
+/**
+ * Hook for managing checklist state in Supabase cloud storage.
+ * Requires user authentication - no local storage fallback.
+ */
 export function useChecklistState() {
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { error, handleError, clearError } = useErrorHandler();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
         const loadChecklistState = async () => {
+            // Wait for auth to finish loading
+            if (authLoading) return;
+
+            // Require authentication
+            if (!user) {
+                setIsLoading(false);
+                setCompletedTasks([]);
+                return;
+            }
+
             try {
                 clearError();
                 setIsLoading(true);
 
-                if (user) {
-                    // Load from Supabase
-                    const { data, error } = await supabase
-                        .from('user_checklist')
-                        .select('task_id');
-
-                    if (error) throw error;
-                    setCompletedTasks(data.map(row => row.task_id));
-                } else {
-                    // Load from Local Storage
-                    const saved = await HybridStorageManager.getChecklistState();
-                    setCompletedTasks(saved);
-                }
+                const tasks = await SupabaseStorageManager.getChecklistState(user.id);
+                setCompletedTasks(tasks);
             } catch (error) {
                 handleError(error, 'Loading checklist state');
             } finally {
@@ -100,9 +40,14 @@ export function useChecklistState() {
         };
 
         loadChecklistState();
-    }, [user, handleError, clearError]);
+    }, [user, authLoading, handleError, clearError]);
 
     const toggleTask = useCallback(async (taskId: string) => {
+        if (!user) {
+            handleError(new Error('Please log in to save your checklist progress'), 'Authentication required');
+            return;
+        }
+
         try {
             clearError();
             const isCompleted = completedTasks.includes(taskId);
@@ -110,19 +55,11 @@ export function useChecklistState() {
                 ? completedTasks.filter(id => id !== taskId)
                 : [...completedTasks, taskId];
 
+            // Optimistic update
             setCompletedTasks(newState);
 
-            if (user) {
-                // Sync with Supabase
-                if (isCompleted) {
-                    await supabase.from('user_checklist').delete().match({ user_id: user.id, task_id: taskId });
-                } else {
-                    await supabase.from('user_checklist').insert({ user_id: user.id, task_id: taskId });
-                }
-            } else {
-                // Sync with Local Storage
-                await HybridStorageManager.saveChecklistState(newState);
-            }
+            // Sync with Supabase
+            await SupabaseStorageManager.toggleTask(user.id, taskId, isCompleted);
         } catch (error) {
             handleError(error, 'Toggling task');
             // Revert state on error
@@ -135,15 +72,15 @@ export function useChecklistState() {
     }, [completedTasks]);
 
     const clearAllTasks = useCallback(async () => {
+        if (!user) {
+            handleError(new Error('Please log in to manage your checklist'), 'Authentication required');
+            return;
+        }
+
         try {
             clearError();
             setCompletedTasks([]);
-
-            if (user) {
-                await supabase.from('user_checklist').delete().eq('user_id', user.id);
-            } else {
-                await HybridStorageManager.saveChecklistState([]);
-            }
+            await SupabaseStorageManager.clearChecklist(user.id);
         } catch (error) {
             handleError(error, 'Clearing all tasks');
         }
@@ -155,35 +92,39 @@ export function useChecklistState() {
         isTaskCompleted,
         clearAllTasks,
         isLoading,
-        error
+        error,
+        requiresAuth: !user,
     };
 }
 
+/**
+ * Hook for managing QPIP calculation history in Supabase cloud storage.
+ * Requires user authentication - no local storage fallback.
+ */
 export function useQPIPHistory() {
-    const [qpipHistory, setQpipHistory] = useState<any[]>([]);
+    const [qpipHistory, setQpipHistory] = useState<QPIPCalculation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { error, handleError, clearError } = useErrorHandler();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
         const loadQPIPHistory = async () => {
+            // Wait for auth to finish loading
+            if (authLoading) return;
+
+            // Require authentication
+            if (!user) {
+                setIsLoading(false);
+                setQpipHistory([]);
+                return;
+            }
+
             try {
                 clearError();
                 setIsLoading(true);
 
-                if (user) {
-                    const { data, error } = await supabase
-                        .from('user_qpip_history')
-                        .select('calculation')
-                        .order('created_at', { ascending: false })
-                        .limit(10);
-
-                    if (error) throw error;
-                    setQpipHistory(data.map(row => row.calculation));
-                } else {
-                    const history = await HybridStorageManager.getQPIPHistory();
-                    setQpipHistory(history);
-                }
+                const history = await SupabaseStorageManager.getQPIPHistory(user.id);
+                setQpipHistory(history);
             } catch (error) {
                 handleError(error, 'Loading QPIP history');
             } finally {
@@ -192,37 +133,40 @@ export function useQPIPHistory() {
         };
 
         loadQPIPHistory();
-    }, [user, handleError, clearError]);
+    }, [user, authLoading, handleError, clearError]);
 
-    const saveQPIPCalculation = useCallback(async (calculation: any) => {
+    const saveQPIPCalculation = useCallback(async (calculation: QPIPCalculation) => {
+        if (!user) {
+            handleError(new Error('Please log in to save your calculation history'), 'Authentication required');
+            return;
+        }
+
         try {
             clearError();
             const newHistory = [calculation, ...qpipHistory].slice(0, 10);
+            
+            // Optimistic update
             setQpipHistory(newHistory);
 
-            if (user) {
-                await supabase.from('user_qpip_history').insert({
-                    user_id: user.id,
-                    calculation
-                });
-            } else {
-                await HybridStorageManager.saveQPIPCalculation(calculation);
-            }
+            // Sync with Supabase
+            await SupabaseStorageManager.saveQPIPCalculation(user.id, calculation);
         } catch (error) {
             handleError(error, 'Saving QPIP calculation');
+            // Revert state on error
+            setQpipHistory(qpipHistory);
         }
     }, [qpipHistory, user, handleError, clearError]);
 
     const clearHistory = useCallback(async () => {
+        if (!user) {
+            handleError(new Error('Please log in to manage your calculation history'), 'Authentication required');
+            return;
+        }
+
         try {
             clearError();
             setQpipHistory([]);
-
-            if (user) {
-                await supabase.from('user_qpip_history').delete().eq('user_id', user.id);
-            } else {
-                await HybridStorageManager.clearUserData();
-            }
+            await SupabaseStorageManager.clearQPIPHistory(user.id);
         } catch (error) {
             handleError(error, 'Clearing QPIP history');
         }
@@ -233,6 +177,7 @@ export function useQPIPHistory() {
         saveQPIPCalculation,
         clearHistory,
         isLoading,
-        error
+        error,
+        requiresAuth: !user,
     };
 }

@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useChecklistState } from '../hooks/useStorage';
 import { ChecklistTask } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { Login } from './Login';
 
 const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
   {
@@ -41,13 +43,39 @@ const checklistData: { trimester: string; tasks: ChecklistTask[] }[] = [
 ];
 
 export function ActionPlan() {
-  const { completedTasks, toggleTask, isTaskCompleted, isLoading, error } = useChecklistState();
+  const { completedTasks, toggleTask, isTaskCompleted, isLoading, error, requiresAuth } = useChecklistState();
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
 
   if (isLoading) {
     return (
       <div className="text-center py-8">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#AF6B51]"></div>
         <p className="mt-4 text-gray-600">Loading your checklist...</p>
+      </div>
+    );
+  }
+
+  if (requiresAuth && !user) {
+    return (
+      <div>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-800">Your Pregnancy Action Plan</h2>
+          <p className="mt-2 text-gray-600">An interactive checklist to keep you on track. Click to mark tasks as complete.</p>
+        </div>
+        <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <h3 className="text-lg font-semibold text-blue-800 mb-2">Sign In Required</h3>
+          <p className="text-blue-700 mb-4">
+            Please sign in to save and sync your checklist progress across all your devices. Your data is securely stored in the cloud.
+          </p>
+          <button
+            onClick={() => setShowLogin(true)}
+            className="px-6 py-2 bg-[#AF6B51] text-white rounded-md hover:bg-[#9c5f48] transition-colors font-medium"
+          >
+            Sign In / Sign Up
+          </button>
+        </div>
+        {showLogin && <Login onClose={() => setShowLogin(false)} />}
       </div>
     );
   }
@@ -69,6 +97,9 @@ export function ActionPlan() {
         <h2 className="text-2xl font-bold text-gray-800">Your Pregnancy Action Plan</h2>
         <p className="mt-2 text-gray-600">An interactive checklist to keep you on track. Click to mark tasks as complete.</p>
         <p className="mt-1 text-sm text-gray-500">Your progress is saved in the cloud and synced across all devices.</p>
+        {user && (
+          <p className="mt-1 text-xs text-green-600">✓ Signed in as {user.email}</p>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">

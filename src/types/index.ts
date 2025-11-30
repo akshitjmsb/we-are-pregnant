@@ -19,6 +19,7 @@ export interface QPIPCalculation {
   employmentType: 'employee' | 'self-employed';
   taxRate: number;
   timestamp?: string;
+  results?: QPIPResults; // Optional results for stored calculations
 }
 
 export interface QPIPPlanDetails {
