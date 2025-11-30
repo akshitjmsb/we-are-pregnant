@@ -8,8 +8,6 @@ import { Resources } from './components/Resources';
 import { KeyContacts } from './components/KeyContacts';
 import { Wellness } from './components/Wellness';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Login } from './components/Login';
 
 type TabId = 'action-plan' | 'healthcare' | 'qpip-calculator' | 'timeline' | 'resources' | 'contacts' | 'wellness';
 
@@ -23,11 +21,9 @@ const tabs = [
   { id: 'wellness' as TabId, labelKey: 'tabs.wellness' },
 ];
 
-function AppContent() {
+function App() {
   const [activeTab, setActiveTab] = useState<TabId>('action-plan');
-  const [showLogin, setShowLogin] = useState(false);
   const { t, i18n } = useTranslation();
-  const { user, signOut } = useAuth();
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'fr' : 'en';
@@ -66,21 +62,6 @@ function AppContent() {
             >
               {i18n.language === 'en' ? 'FR' : 'EN'}
             </button>
-            {user ? (
-              <button
-                onClick={() => signOut()}
-                className="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-              >
-                Sign Out
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowLogin(true)}
-                className="px-3 py-1 text-sm font-medium text-white bg-[#AF6B51] rounded hover:bg-[#9c5f48] transition-colors"
-              >
-                Log In
-              </button>
-            )}
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-[#AF6B51] tracking-tight">
@@ -122,17 +103,7 @@ function AppContent() {
           <p>&copy; 2025 We are Pregnant. All Rights Reserved.</p>
         </footer>
       </div>
-
-      {showLogin && <Login onClose={() => setShowLogin(false)} />}
     </ErrorBoundary>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
 

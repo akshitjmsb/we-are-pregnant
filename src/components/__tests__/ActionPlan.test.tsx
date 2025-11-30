@@ -10,16 +10,7 @@ vi.mock('../../hooks/useStorage', () => ({
     isTaskCompleted: (taskId: string) => taskId === 't1-1',
     clearAllTasks: vi.fn(),
     isLoading: false,
-    error: null,
-    requiresAuth: false
-  })
-}));
-
-// Mock AuthContext
-vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({
-    user: { id: 'test-user', email: 'test@example.com' },
-    loading: false
+    error: null
   })
 }));
 

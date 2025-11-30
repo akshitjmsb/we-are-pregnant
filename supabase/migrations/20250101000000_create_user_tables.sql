@@ -1,7 +1,10 @@
+-- Single-user application: Use a constant UUID for all data
+-- This allows cloud storage without authentication
+
 -- Create user_checklist table to store completed checklist tasks
 CREATE TABLE IF NOT EXISTS public.user_checklist (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'::uuid,
     task_id TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(user_id, task_id)
@@ -10,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.user_checklist (
 -- Create user_qpip_history table to store QPIP calculation history
 CREATE TABLE IF NOT EXISTS public.user_qpip_history (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'::uuid,
     calculation JSONB NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -21,45 +24,20 @@ CREATE INDEX IF NOT EXISTS idx_user_checklist_task_id ON public.user_checklist(t
 CREATE INDEX IF NOT EXISTS idx_user_qpip_history_user_id ON public.user_qpip_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_qpip_history_created_at ON public.user_qpip_history(created_at DESC);
 
--- Enable Row Level Security (RLS)
+-- Enable Row Level Security (RLS) but allow anonymous access for single-user app
 ALTER TABLE public.user_checklist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_qpip_history ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for user_checklist
--- Users can only see their own checklist items
-CREATE POLICY "Users can view their own checklist"
+-- Create permissive RLS policies for single-user application
+-- Allow all operations for the single user ID (anonymous access)
+CREATE POLICY "Allow all operations for single user checklist"
     ON public.user_checklist
-    FOR SELECT
-    USING (auth.uid() = user_id);
+    FOR ALL
+    USING (user_id = '00000000-0000-0000-0000-000000000000'::uuid)
+    WITH CHECK (user_id = '00000000-0000-0000-0000-000000000000'::uuid);
 
--- Users can insert their own checklist items
-CREATE POLICY "Users can insert their own checklist"
-    ON public.user_checklist
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
--- Users can delete their own checklist items
-CREATE POLICY "Users can delete their own checklist"
-    ON public.user_checklist
-    FOR DELETE
-    USING (auth.uid() = user_id);
-
--- Create RLS policies for user_qpip_history
--- Users can only see their own QPIP history
-CREATE POLICY "Users can view their own QPIP history"
+CREATE POLICY "Allow all operations for single user QPIP history"
     ON public.user_qpip_history
-    FOR SELECT
-    USING (auth.uid() = user_id);
-
--- Users can insert their own QPIP history
-CREATE POLICY "Users can insert their own QPIP history"
-    ON public.user_qpip_history
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
--- Users can delete their own QPIP history
-CREATE POLICY "Users can delete their own QPIP history"
-    ON public.user_qpip_history
-    FOR DELETE
-    USING (auth.uid() = user_id);
-
+    FOR ALL
+    USING (user_id = '00000000-0000-0000-0000-000000000000'::uuid)
+    WITH CHECK (user_id = '00000000-0000-0000-0000-000000000000'::uuid);

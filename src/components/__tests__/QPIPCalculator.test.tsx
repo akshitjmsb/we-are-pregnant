@@ -17,16 +17,7 @@ vi.mock('../../hooks/useStorage', () => ({
     saveQPIPCalculation: vi.fn(),
     clearHistory: vi.fn(),
     isLoading: false,
-    error: null,
-    requiresAuth: false
-  })
-}));
-
-// Mock AuthContext
-vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({
-    user: { id: 'test-user', email: 'test@example.com' },
-    loading: false
+    error: null
   })
 }));
 

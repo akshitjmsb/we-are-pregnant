@@ -3,8 +3,6 @@ import { QPIPCalculator as QPIPCalc } from '../utils/qpipCalculations';
 import { QPIPResults, QPIPCalculation } from '../types';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import { useQPIPHistory } from '../hooks/useStorage';
-import { useAuth } from '../contexts/AuthContext';
-import { Login } from './Login';
 
 export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [salary, setSalary] = useState(65000);
@@ -15,9 +13,7 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
   const [isEligible, setIsEligible] = useState(true);
 
   const { error, handleError, clearError } = useErrorHandler();
-  const { qpipHistory, saveQPIPCalculation, isLoading: isHistoryLoading, requiresAuth } = useQPIPHistory();
-  const { user } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
+  const { qpipHistory, saveQPIPCalculation, isLoading: isHistoryLoading } = useQPIPHistory();
 
   const calculateBenefits = async () => {
     try {
@@ -40,16 +36,14 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
         setIsEligible(true);
         setResults(benefits);
 
-        // Save calculation to cloud storage (only if authenticated)
-        if (user) {
-          try {
-            await saveQPIPCalculation({
-              ...calculation,
-              results: benefits
-            });
-          } catch (saveError) {
-            console.warn('Failed to save calculation to cloud storage:', saveError);
-          }
+        // Save calculation to cloud storage
+        try {
+          await saveQPIPCalculation({
+            ...calculation,
+            results: benefits
+          });
+        } catch (saveError) {
+          console.warn('Failed to save calculation to cloud storage:', saveError);
         }
       }
     } catch (err) {
@@ -73,25 +67,8 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
         <p className="mt-2 text-gray-600 max-w-3xl mx-auto">
           Estimate your maternity, paternity, and parental leave benefits from the Quebec Parental Insurance Plan (QPIP).
         </p>
-        {requiresAuth && !user && (
-          <div className="mt-4 max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-700 text-sm">
-              <strong>Sign in to save your calculation history.</strong> Your calculations will be stored securely in the cloud.
-            </p>
-            <button
-              onClick={() => setShowLogin(true)}
-              className="mt-2 px-4 py-1 bg-[#AF6B51] text-white rounded-md hover:bg-[#9c5f48] transition-colors text-sm font-medium"
-            >
-              Sign In / Sign Up
-            </button>
-          </div>
-        )}
-        {user && (
-          <p className="mt-2 text-xs text-green-600">✓ Signed in as {user.email}</p>
-        )}
+        <p className="mt-1 text-sm text-gray-500">Your calculation history is saved in the cloud.</p>
       </div>
-
-      {showLogin && <Login onClose={() => setShowLogin(false)} />}
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-700">

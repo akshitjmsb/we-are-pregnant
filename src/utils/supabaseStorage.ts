@@ -1,27 +1,27 @@
 import { supabase } from '../lib/supabase';
 import { QPIPCalculation } from '../types';
-import { User } from '@supabase/supabase-js';
+
+/**
+ * Single User ID - used for all data storage
+ * Since this is a single-user application, we use a constant user ID
+ */
+const SINGLE_USER_ID = '00000000-0000-0000-0000-000000000000';
 
 /**
  * Supabase Cloud Storage Manager
  * All data is stored in Supabase - no local storage is used.
- * Authentication is required for all operations.
+ * Single-user application - no authentication required.
  */
 export class SupabaseStorageManager {
   /**
-   * Get checklist state for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Get checklist state for the single user
    * @returns Array of completed task IDs
    */
-  static async getChecklistState(userId: string): Promise<string[]> {
-    if (!userId) {
-      throw new Error('User must be authenticated to access checklist');
-    }
-
+  static async getChecklistState(): Promise<string[]> {
     const { data, error } = await supabase
       .from('user_checklist')
       .select('task_id')
-      .eq('user_id', userId);
+      .eq('user_id', SINGLE_USER_ID);
 
     if (error) {
       console.error('Failed to load checklist state:', error);
@@ -32,20 +32,15 @@ export class SupabaseStorageManager {
   }
 
   /**
-   * Save checklist state for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Save checklist state for the single user
    * @param completedTasks - Array of completed task IDs
    */
-  static async saveChecklistState(userId: string, completedTasks: string[]): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to save checklist');
-    }
-
+  static async saveChecklistState(completedTasks: string[]): Promise<void> {
     // First, delete all existing tasks for this user
     const { error: deleteError } = await supabase
       .from('user_checklist')
       .delete()
-      .eq('user_id', userId);
+      .eq('user_id', SINGLE_USER_ID);
 
     if (deleteError) {
       console.error('Failed to clear existing checklist:', deleteError);
@@ -55,7 +50,7 @@ export class SupabaseStorageManager {
     // Then insert all completed tasks
     if (completedTasks.length > 0) {
       const tasksToInsert = completedTasks.map(taskId => ({
-        user_id: userId,
+        user_id: SINGLE_USER_ID,
         task_id: taskId,
       }));
 
@@ -72,21 +67,16 @@ export class SupabaseStorageManager {
 
   /**
    * Toggle a single task in the checklist
-   * @param userId - The authenticated user's ID
    * @param taskId - The task ID to toggle
    * @param isCompleted - Whether the task is currently completed
    */
-  static async toggleTask(userId: string, taskId: string, isCompleted: boolean): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to toggle tasks');
-    }
-
+  static async toggleTask(taskId: string, isCompleted: boolean): Promise<void> {
     if (isCompleted) {
       // Remove task
       const { error } = await supabase
         .from('user_checklist')
         .delete()
-        .match({ user_id: userId, task_id: taskId });
+        .match({ user_id: SINGLE_USER_ID, task_id: taskId });
 
       if (error) {
         console.error('Failed to remove task:', error);
@@ -96,7 +86,7 @@ export class SupabaseStorageManager {
       // Add task
       const { error } = await supabase
         .from('user_checklist')
-        .insert({ user_id: userId, task_id: taskId });
+        .insert({ user_id: SINGLE_USER_ID, task_id: taskId });
 
       if (error) {
         console.error('Failed to add task:', error);
@@ -106,18 +96,13 @@ export class SupabaseStorageManager {
   }
 
   /**
-   * Clear all checklist tasks for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Clear all checklist tasks for the single user
    */
-  static async clearChecklist(userId: string): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to clear checklist');
-    }
-
+  static async clearChecklist(): Promise<void> {
     const { error } = await supabase
       .from('user_checklist')
       .delete()
-      .eq('user_id', userId);
+      .eq('user_id', SINGLE_USER_ID);
 
     if (error) {
       console.error('Failed to clear checklist:', error);
@@ -126,20 +111,15 @@ export class SupabaseStorageManager {
   }
 
   /**
-   * Get QPIP calculation history for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Get QPIP calculation history for the single user
    * @param limit - Maximum number of calculations to return (default: 10)
    * @returns Array of QPIP calculations
    */
-  static async getQPIPHistory(userId: string, limit: number = 10): Promise<QPIPCalculation[]> {
-    if (!userId) {
-      throw new Error('User must be authenticated to access QPIP history');
-    }
-
+  static async getQPIPHistory(limit: number = 10): Promise<QPIPCalculation[]> {
     const { data, error } = await supabase
       .from('user_qpip_history')
       .select('calculation')
-      .eq('user_id', userId)
+      .eq('user_id', SINGLE_USER_ID)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -152,19 +132,14 @@ export class SupabaseStorageManager {
   }
 
   /**
-   * Save a QPIP calculation for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Save a QPIP calculation for the single user
    * @param calculation - The QPIP calculation to save
    */
-  static async saveQPIPCalculation(userId: string, calculation: QPIPCalculation): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to save QPIP calculation');
-    }
-
+  static async saveQPIPCalculation(calculation: QPIPCalculation): Promise<void> {
     const { error } = await supabase
       .from('user_qpip_history')
       .insert({
-        user_id: userId,
+        user_id: SINGLE_USER_ID,
         calculation,
       });
 
@@ -177,7 +152,7 @@ export class SupabaseStorageManager {
     const { data: allCalculations } = await supabase
       .from('user_qpip_history')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', SINGLE_USER_ID)
       .order('created_at', { ascending: false });
 
     if (allCalculations && allCalculations.length > 10) {
@@ -190,18 +165,13 @@ export class SupabaseStorageManager {
   }
 
   /**
-   * Clear all QPIP history for the authenticated user
-   * @param userId - The authenticated user's ID
+   * Clear all QPIP history for the single user
    */
-  static async clearQPIPHistory(userId: string): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to clear QPIP history');
-    }
-
+  static async clearQPIPHistory(): Promise<void> {
     const { error } = await supabase
       .from('user_qpip_history')
       .delete()
-      .eq('user_id', userId);
+      .eq('user_id', SINGLE_USER_ID);
 
     if (error) {
       console.error('Failed to clear QPIP history:', error);
@@ -211,17 +181,11 @@ export class SupabaseStorageManager {
 
   /**
    * Clear all user data (checklist and QPIP history)
-   * @param userId - The authenticated user's ID
    */
-  static async clearAllUserData(userId: string): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to clear data');
-    }
-
+  static async clearAllUserData(): Promise<void> {
     await Promise.all([
-      this.clearChecklist(userId),
-      this.clearQPIPHistory(userId),
+      this.clearChecklist(),
+      this.clearQPIPHistory(),
     ]);
   }
 }
-
