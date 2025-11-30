@@ -69,9 +69,6 @@ export function ActionPlan() {
         <h2 className="text-2xl font-bold text-gray-800">Your Pregnancy Action Plan</h2>
         <p className="mt-2 text-gray-600">An interactive checklist to keep you on track. Click to mark tasks as complete.</p>
         <p className="mt-1 text-sm text-gray-500">Your progress is saved in the cloud and synced across all devices.</p>
-        {user && (
-          <p className="mt-1 text-xs text-green-600">✓ Signed in as {user.email}</p>
-        )}
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
