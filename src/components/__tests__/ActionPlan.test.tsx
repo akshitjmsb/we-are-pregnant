@@ -8,7 +8,6 @@ vi.mock('../../hooks/useStorage', () => ({
     completedTasks: ['t1-1'],
     toggleTask: vi.fn(),
     isTaskCompleted: (taskId: string) => taskId === 't1-1',
-    clearAllTasks: vi.fn(),
     isLoading: false,
     error: null
   })

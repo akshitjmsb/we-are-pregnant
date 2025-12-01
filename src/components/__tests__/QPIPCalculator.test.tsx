@@ -15,7 +15,6 @@ vi.mock('../../hooks/useStorage', () => ({
   useQPIPHistory: () => ({
     qpipHistory: [],
     saveQPIPCalculation: vi.fn(),
-    clearHistory: vi.fn(),
     isLoading: false,
     error: null
   })

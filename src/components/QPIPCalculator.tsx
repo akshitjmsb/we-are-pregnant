@@ -67,7 +67,6 @@ export const QPIPCalculator = React.memo(function QPIPCalculator() {
         <p className="mt-2 text-gray-600 max-w-3xl mx-auto">
           Estimate your maternity, paternity, and parental leave benefits from the Quebec Parental Insurance Plan (QPIP).
         </p>
-        <p className="mt-1 text-sm text-gray-500">Your calculation history is saved in the cloud.</p>
       </div>
 
       {error && (
