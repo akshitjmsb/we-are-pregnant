@@ -41,7 +41,7 @@ export function useChecklistState() {
             // Optimistic update
             setCompletedTasks(newState);
 
-            // Sync with Supabase
+                // Sync with Supabase
             await SupabaseStorageManager.toggleTask(taskId, isCompleted);
         } catch (error) {
             handleError(error, 'Toggling task');
@@ -90,7 +90,7 @@ export function useQPIPHistory() {
                 setIsLoading(true);
 
                 const history = await SupabaseStorageManager.getQPIPHistory();
-                setQpipHistory(history);
+                    setQpipHistory(history);
             } catch (error) {
                 handleError(error, 'Loading QPIP history');
             } finally {
