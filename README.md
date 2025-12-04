@@ -145,13 +145,7 @@ This repository is configured for automated deployment with Vercel.
     *   Click "Add New..." -> "Project".
     *   Import this GitHub repository.
 
-2.  **Configure Environment Variables**:
-    *   In the Vercel project settings, go to "Settings" -> "Environment Variables".
-    *   Add the following variables (get these from your Supabase project settings):
-        *   `VITE_SUPABASE_URL`
-        *   `VITE_SUPABASE_ANON_KEY`
-
-3.  **Deploy**:
+2.  **Deploy**:
     *   Vercel will automatically deploy the `main` branch.
     *   Any Pull Request will generate a preview URL.
 
